@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Etiqueta · Activación Minería</title>
+<style>
+  :root{
+    --ink:#15191e; --slate:#3a4654; --steel:#6a7785; --line:#e2e6ea;
+    --bg:#eef1f4; --card:#fff; --hi:#c8501e; --hi-soft:#f7e6dc; --mother:#16384f;
+    --sans:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    --mono:"SFMono-Regular",Consolas,Menlo,monospace;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;font-family:var(--sans);background:var(--bg);color:var(--ink);
+    line-height:1.45;display:flex;justify-content:center;padding:18px 14px 40px;min-height:100vh;}
+  .card{width:100%;max-width:440px;background:var(--card);border-radius:18px;overflow:hidden;
+    box-shadow:0 12px 40px rgba(20,30,45,.14);border:1px solid var(--line);}
+  .top{padding:18px 22px 16px;color:#fff;background:var(--hi);position:relative;}
+  .top.mom{background:var(--mother);}
+  .kind{display:inline-block;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;
+    background:rgba(255,255,255,.18);padding:4px 10px;border-radius:20px;margin-bottom:10px;}
+  .top h1{margin:0;font-size:15px;font-weight:600;opacity:.92;letter-spacing:.3px;}
+  .oc{font-size:30px;font-weight:800;margin:2px 0 0;letter-spacing:.5px;line-height:1.05;}
+  .body{padding:6px 0 4px;}
+  .row{display:flex;padding:13px 22px;border-bottom:1px solid var(--line);gap:14px;}
+  .row:last-child{border-bottom:none;}
+  .row .k{flex:0 0 116px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--steel);
+    font-weight:700;padding-top:2px;}
+  .row .v{flex:1;font-size:16px;font-weight:600;color:var(--ink);word-break:break-word;}
+  .row .v.big{font-size:18px;}
+  .row.material .v{font-weight:650;line-height:1.3;}
+  .qty{display:flex;align-items:baseline;gap:6px;}
+  .qty .n{font-size:30px;font-weight:800;color:var(--hi);line-height:1;}
+  .top.mom ~ .body .qty .n{color:var(--mother);}
+  .qty .u{font-size:14px;color:var(--steel);font-weight:700;}
+  .crit{display:inline-block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+    padding:3px 10px;border-radius:6px;}
+  .crit.alta{background:#fdecea;color:#b3261e;}
+  .crit.media{background:#fff4e0;color:#9a6300;}
+  .crit.baja{background:#e8f3ec;color:#1f7a44;}
+  .crit.none{background:#eef1f4;color:var(--steel);}
+  .foot{padding:14px 22px 18px;text-align:center;font-size:11px;color:var(--steel);letter-spacing:.4px;}
+  .err{padding:40px 26px;text-align:center;}
+  .err h2{margin:0 0 8px;font-size:18px;}
+  .err p{margin:0;color:var(--steel);font-size:14px;}
+</style>
+</head>
+<body>
+<div id="root" class="card"><div class="err"><h2>Cargando…</h2></div></div>
+<script>
+function dec(){
+  try{
+    const h=location.hash.replace(/^#/,'');
+    const q=new URLSearchParams(location.search).get('d');
+    let raw=h||q;
+    if(!raw)return null;
+    // los datos van como JSON en base64-url
+    raw=raw.replace(/-/g,'+').replace(/_/g,'/');
+    while(raw.length%4)raw+='=';
+    const json=decodeURIComponent(escape(atob(raw)));
+    return JSON.parse(json);
+  }catch(e){return null;}
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>]/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[x]));}
+function rowEl(k,v,cls){return v?'<div class="row '+(cls||'')+'"><div class="k">'+k+'</div><div class="v">'+esc(v)+'</div></div>':'';}
+
+function render(d){
+  const root=document.getElementById('root');
+  if(!d){root.innerHTML='<div class="err"><h2>Etiqueta no válida</h2><p>El código QR no contiene datos legibles. Volvé a escanearlo.</p></div>';return;}
+  const isMom=d.k==='M';
+  const critClass=(d.crit||'').toLowerCase().includes('alta')?'alta':(d.crit||'').toLowerCase().includes('med')?'media':(d.crit||'').toLowerCase().includes('baj')?'baja':'none';
+  const qtyHtml = isMom
+    ? '<div class="qty"><span class="n">'+esc(d.cant||'—')+'</span><span class="u">'+esc(d.um||'unid')+'</span></div>'
+    : '<div class="qty"><span class="n">1</span><span class="u">'+esc(d.um||'unid')+'</span></div>';
+  root.innerHTML=
+    '<div class="top'+(isMom?' mom':'')+'">'+
+      '<span class="kind">'+(isMom?'Caja madre':'Bulto individual')+'</span>'+
+      '<h1>Activación Minería · Orden de compra</h1>'+
+      '<div class="oc">OC '+esc(d.oc||'—')+'</div>'+
+    '</div>'+
+    '<div class="body">'+
+      '<div class="row material"><div class="k">Material</div><div class="v">'+esc(d.desc||'—')+'</div></div>'+
+      '<div class="row"><div class="k">'+(isMom?'Total caja':'Cantidad')+'</div><div class="v">'+qtyHtml+'</div></div>'+
+      rowEl('Cód', d.sap)+
+      rowEl('Posición', d.pos)+
+      (d.crit?'<div class="row"><div class="k">Criticidad</div><div class="v"><span class="crit '+critClass+'">'+esc(d.crit)+'</span></div></div>':'')+
+      rowEl('Proveedor', d.prov)+
+      rowEl('Entrega', d.fecha)+
+      rowEl('Ref. Compras', d.ref)+
+    '</div>'+
+    '<div class="foot">Etiqueta generada desde Planilla de Activación</div>';
+  document.title='OC '+(d.oc||'')+' · '+(d.desc||'Etiqueta');
+}
+render(dec());
+</script>
+</body>
+</html>
