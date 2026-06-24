@@ -81,6 +81,17 @@ function rowEl(k,v,cls){return v?'<div class="row '+(cls||'')+'"><div class="k">
 function render(d){
   const root=document.getElementById('root');
   if(!d){root.innerHTML='<div class="err"><h2>Etiqueta no válida</h2><p>El código QR no contiene datos legibles. Volvé a escanearlo.</p></div>';return;}
+  // Normalizar claves cortas (nuevas) a las largas que usa el render. Mantiene compatibilidad con QR viejos.
+  if(d.o!=null && d.oc==null) d.oc=d.o;
+  if(d.p!=null && d.prov==null) d.prov=d.p;
+  if(d.f!=null && d.fecha==null) d.fecha=d.f;
+  if(d.c!=null && d.crit==null) d.crit=d.c;
+  if(d.r!=null && d.ref==null) d.ref=d.r;
+  if(d.d!=null && d.desc==null) d.desc=d.d;
+  if(d.s!=null && d.sap==null) d.sap=d.s;
+  if(d.ps!=null && d.pos==null) d.pos=d.ps;
+  if(d.q!=null && d.cant==null) d.cant=d.q;
+  if(d.u!=null && d.um==null) d.um=d.u;
   const critClass=(d.crit||'').toLowerCase().includes('alta')?'alta':(d.crit||'').toLowerCase().includes('med')?'media':(d.crit||'').toLowerCase().includes('baj')?'baja':'none';
 
   // Etiqueta de OC completa: lista todos los ítems
